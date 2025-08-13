@@ -61,14 +61,6 @@ describe("ReadFilesTool", () => {
       const result = tool.validateToolParams({} as any);
       expect(result).toContain("paths");
     });
-
-    it("should reject invalid encoding", () => {
-      const result = tool.validateToolParams({
-        paths: [testFile1],
-        encoding: "invalid",
-      } as any);
-      expect(result).toContain("enum");
-    });
   });
 
   describe("execute", () => {

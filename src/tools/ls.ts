@@ -31,15 +31,14 @@ export class LsTool implements Tool<LsParams, ToolResult> {
     const ajv = new Ajv();
     const validate = ajv.compile(this.schema);
     const valid = validate(params);
+    console.log("Validation result:", valid);
+    console.log("Validation errors:", validate.errors);
 
     if (!valid) {
       return (
         validate.errors
           ?.map((error) => {
-            const path = error.instancePath
-              ? error.instancePath.substring(1)
-              : error.keyword;
-            return `${path}: ${error.message}`;
+            return `${error.keyword}: ${error.message}`;
           })
           .join(", ") || "Validation failed"
       );

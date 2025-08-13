@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, statSync } from "fs";
 import Ajv from "ajv";
 import { Tool, ToolResult } from "./base-tool";
+import path from "path";
 
 export interface EditToolParams {
   file_path: string;
@@ -53,6 +54,10 @@ export class EditFileTool implements Tool<EditToolParams, ToolResult> {
       );
     }
 
+    if (!path.isAbsolute(params.file_path)) {
+      return `File path must be absolute: ${params.file_path}`;
+    }
+
     return null;
   }
 
@@ -73,6 +78,16 @@ export class EditFileTool implements Tool<EditToolParams, ToolResult> {
 
       // 读取当前文件内容
       const currentContent = readFileSync(params.file_path, "utf8");
+
+      const isNewFile = currentContent.trim().length === 0;
+
+      if (isNewFile) {
+        // 如果是新文件，直接写入新内容
+        writeFileSync(params.file_path, params.new_content, "utf8");
+        return {
+          llmContent: `Successfully created and wrote new file: ${params.file_path}`,
+        };
+      }
 
       // 检查old_content是否存在于文件中
       if (!currentContent.includes(params.old_content)) {

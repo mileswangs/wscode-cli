@@ -44,7 +44,6 @@ export class ToolRegistry {
 export const getBaseToolRegistry = (): ToolRegistry => {
   const baseToolRegistry = new ToolRegistry();
   baseToolRegistry.registerTool(new ReadFilesTool());
-  baseToolRegistry.registerTool(new ReadFilesTool());
   baseToolRegistry.registerTool(new LsTool());
   return baseToolRegistry;
 };

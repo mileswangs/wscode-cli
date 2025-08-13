@@ -38,10 +38,7 @@ export class ReadFilesTool implements Tool<ReadFilesParams, ToolResult> {
       return (
         validate.errors
           ?.map((error) => {
-            const path = error.instancePath
-              ? error.instancePath.substring(1)
-              : error.keyword;
-            return `${path}: ${error.message}`;
+            return `${error.keyword}: ${error.message}`;
           })
           .join(", ") || "Validation failed"
       );
