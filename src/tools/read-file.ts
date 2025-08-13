@@ -122,3 +122,5 @@ ${content}`;
     }
   }
 }
+
+export const readFileTool = new ReadFileTool();

@@ -143,3 +143,5 @@ The file has been successfully updated.`;
     }
   }
 }
+
+export const editFileTool = new EditFileTool();

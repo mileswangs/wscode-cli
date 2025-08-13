@@ -1,6 +1,9 @@
+import { OpenAI } from "openai/client";
 import { Tool, ToolResult } from "./base-tool";
-import { LsTool } from "./ls";
-import { ReadFilesTool } from "./read-files";
+import { editFileTool } from "./edit-file";
+import { grepTool } from "./grep";
+import { lsTool } from "./ls";
+import { readFileTool } from "./read-file";
 
 export class ToolRegistry {
   private tools: Map<string, Tool<any, ToolResult>>;
@@ -32,6 +35,18 @@ export class ToolRegistry {
     return Array.from(this.tools.values());
   }
 
+  getAllToolsSchema(): OpenAI.Responses.FunctionTool[] {
+    return this.getAllTools().map(
+      (tool): OpenAI.Responses.FunctionTool => ({
+        type: "function",
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.schema,
+        strict: true,
+      })
+    );
+  }
+
   hasTool(name: string): boolean {
     return this.tools.has(name);
   }
@@ -43,7 +58,9 @@ export class ToolRegistry {
 
 export const getBaseToolRegistry = (): ToolRegistry => {
   const baseToolRegistry = new ToolRegistry();
-  baseToolRegistry.registerTool(new ReadFilesTool());
-  baseToolRegistry.registerTool(new LsTool());
+  baseToolRegistry.registerTool(lsTool);
+  baseToolRegistry.registerTool(grepTool);
+  baseToolRegistry.registerTool(readFileTool);
+  baseToolRegistry.registerTool(editFileTool);
   return baseToolRegistry;
 };

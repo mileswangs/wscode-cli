@@ -1,61 +1,40 @@
 import OpenAI from "openai";
 import { ToolRegistry, getBaseToolRegistry } from "./tools/tool-registry";
 import { Tool, ToolResult } from "./tools/base-tool";
+import { systemPrompt } from "./prompt";
+type ChatInput = OpenAI.Responses.ResponseInputItem;
 
-interface ChatMessage {
-  role: "system" | "user" | "assistant" | "tool";
-  content: string;
-  tool_call_id?: string;
-  tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
-}
+const openai = new OpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_KEY,
+});
 
-interface ToolCall {
-  id: string;
-  name: string;
-  arguments: string;
-}
-
-async function llmCall(
-  messages: ChatMessage[],
-  tools?: OpenAI.Chat.Completions.ChatCompletionTool[]
-): Promise<OpenAI.Chat.Completions.ChatCompletion> {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-
-  return await openai.chat.completions.create({
-    model: "gpt-4",
-    messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+async function llmCall(input: ChatInput[], tools?: OpenAI.Responses.Tool[]) {
+  return await openai.responses.create({
+    model: "openai/gpt-4.1",
+    input: input,
     tools: tools,
     tool_choice: tools && tools.length > 0 ? "auto" : undefined,
   });
 }
 
 export class Chat {
-  private history: ChatMessage[];
+  private history: ChatInput[];
   private toolRegistry: ToolRegistry;
-  private openai: OpenAI;
 
   constructor() {
-    this.history = [];
-    this.toolRegistry = getBaseToolRegistry();
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  }
-
-  private convertToolsToOpenAIFormat(): OpenAI.Chat.Completions.ChatCompletionTool[] {
-    return this.toolRegistry.getAllTools().map((tool) => ({
-      type: "function" as const,
-      function: {
-        name: tool.name,
-        description: tool.description,
-        parameters: tool.schema,
+    this.history = [
+      {
+        role: "system",
+        content: systemPrompt,
       },
-    }));
+    ];
+    this.toolRegistry = getBaseToolRegistry();
   }
 
-  private async executeToolCall(toolCall: ToolCall): Promise<ToolResult> {
+  private async executeToolCall(
+    toolCall: OpenAI.Responses.ResponseFunctionToolCall
+  ): Promise<ToolResult> {
     const tool = this.toolRegistry.getTool(toolCall.name);
     if (!tool) {
       throw new Error(`Tool ${toolCall.name} not found`);
@@ -76,109 +55,46 @@ export class Chat {
     return await tool.execute(params);
   }
 
-  async sendPrompt(prompt: string): Promise<string> {
+  async sendPrompt(prompt: string) {
     // 添加用户消息到历史
     this.history.push({
       role: "user",
       content: prompt,
     });
+    const tools = this.toolRegistry.getAllToolsSchema();
 
-    try {
-      const tools = this.convertToolsToOpenAIFormat();
-
-      // 调用LLM
+    while (true) {
       const response = await llmCall(this.history, tools);
-      const message = response.choices[0]?.message;
+      const output = response.output;
 
-      if (!message) {
+      if (!output) {
         throw new Error("No response from LLM");
       }
-
       // 添加助手响应到历史
-      this.history.push({
-        role: "assistant",
-        content: message.content || "",
-        tool_calls: message.tool_calls,
-      });
+      this.history = this.history.concat(output);
 
-      // 处理工具调用
-      if (message.tool_calls && message.tool_calls.length > 0) {
-        const toolResults: string[] = [];
-
-        for (const toolCall of message.tool_calls) {
-          if (toolCall.type === "function") {
-            try {
-              const result = await this.executeToolCall({
-                id: toolCall.id,
-                name: toolCall.function.name,
-                arguments: toolCall.function.arguments,
-              });
-
-              // 添加工具结果到历史
-              this.history.push({
-                role: "tool",
-                tool_call_id: toolCall.id,
-                content: result.llmContent,
-              });
-
-              toolResults.push(result.llmContent);
-            } catch (error) {
-              const errorMessage =
-                error instanceof Error ? error.message : "Unknown error";
-              this.history.push({
-                role: "tool",
-                tool_call_id: toolCall.id,
-                content: `Error executing tool ${toolCall.function.name}: ${errorMessage}`,
-              });
-            }
-          }
-        }
-
-        // 如果有工具调用，再次调用LLM获取最终响应
-        const finalResponse = await llmCall(this.history);
-        const finalMessage = finalResponse.choices[0]?.message;
-
-        if (finalMessage) {
-          this.history.push({
-            role: "assistant",
-            content: finalMessage.content || "",
-          });
-          return finalMessage.content || "No response content";
-        }
+      const toolCalls = output.filter((item) => item.type === "function_call");
+      if (toolCalls.length === 0) {
+        // 如果没有工具调用，直接返回响应
+        console.log(this.history);
+        return output;
       }
-
-      return message.content || "No response content";
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      console.error("Chat error:", errorMessage);
-
-      // 添加错误响应到历史
-      this.history.push({
-        role: "assistant",
-        content: `Sorry, I encountered an error: ${errorMessage}`,
-      });
-
-      return `Error: ${errorMessage}`;
+      for (const toolCall of toolCalls) {
+        const result = await this.executeToolCall(toolCall);
+        this.history.push({
+          type: "function_call_output",
+          call_id: toolCall.call_id,
+          output: result.toString(),
+        });
+      }
     }
   }
 
-  getHistory(): ChatMessage[] {
+  getHistory(): ChatInput[] {
     return [...this.history];
   }
 
   clearHistory(): void {
     this.history = [];
-  }
-
-  addSystemMessage(content: string): void {
-    this.history.unshift({
-      role: "system",
-      content,
-    });
-  }
-
-  getAvailableTools(): string[] {
-    return this.toolRegistry.listTools();
   }
 }

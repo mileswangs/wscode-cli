@@ -216,3 +216,5 @@ export class GrepTool implements Tool<GrepToolParams, ToolResult> {
     };
   }
 }
+
+export const grepTool = new GrepTool();

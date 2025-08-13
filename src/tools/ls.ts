@@ -76,3 +76,5 @@ export class LsTool implements Tool<LsParams, ToolResult> {
     };
   }
 }
+
+export const lsTool = new LsTool();
