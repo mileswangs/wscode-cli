@@ -22,7 +22,11 @@ export class LsTool implements Tool<LsParams, ToolResult> {
   schema = {
     type: "object",
     properties: {
-      path: { type: "string" },
+      path: {
+        type: "string",
+        description:
+          "The absolute path to the directory to list (must be absolute, not relative)",
+      },
     },
     required: ["path"],
   };
