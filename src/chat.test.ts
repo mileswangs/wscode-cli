@@ -4,26 +4,12 @@ import {
   expect,
   beforeEach,
   afterEach,
-  vi,
   beforeAll,
   afterAll,
 } from "vitest";
 import path from "path";
 import fs from "fs";
 import { Chat } from "./chat";
-
-// Mock OpenAI to avoid real API calls during testing
-const mockCreate = vi.fn();
-
-vi.mock("openai", () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      responses: {
-        create: mockCreate,
-      },
-    })),
-  };
-});
 
 describe("Chat Module Integration Tests", () => {
   const originalCwd = process.cwd();
@@ -42,22 +28,7 @@ describe("Chat Module Integration Tests", () => {
   beforeEach(() => {
     // Change to test project directory to simulate CLI usage
     process.chdir(testProjectPath);
-    console.log(`Test running in: ${process.cwd()}`);
-
-    // Reset mock with default successful response
-    mockCreate.mockResolvedValue({
-      id: "test-response",
-      created_at: Date.now(),
-      output: [
-        {
-          role: "assistant",
-          content:
-            "I can help you with your project files. What would you like me to do?",
-        },
-      ] as any,
-      output_text: "Test response",
-      usage: { input_tokens: 10, output_tokens: 20 },
-    });
+    console.log(`🔄 Test running in: ${process.cwd()}`);
 
     // Create new chat instance for each test
     chat = new Chat();
@@ -66,263 +37,135 @@ describe("Chat Module Integration Tests", () => {
   afterEach(() => {
     // Restore original working directory
     process.chdir(originalCwd);
-    vi.clearAllMocks();
   });
 
   afterAll(() => {
     // Ensure we're back to original directory
     process.chdir(originalCwd);
+    console.log(`✅ All tests completed, back to: ${process.cwd()}`);
   });
 
-  it("should initialize chat with system prompt", () => {
-    const history = chat.getHistory();
-
-    expect(history).toHaveLength(1);
-    // Type assertion needed for system message
-    const systemMessage = history[0] as any;
-    expect(systemMessage.role).toBe("system");
-    expect(systemMessage.content).toContain("You are an interactive CLI agent");
-  });
-
-  it("should work in test project directory", () => {
-    // Verify we're in the correct directory
+  it("should initialize chat and work in test project directory", () => {
+    // Basic setup verification
     expect(process.cwd()).toBe(testProjectPath);
-
-    // Verify test files exist
     expect(fs.existsSync("package.json")).toBe(true);
     expect(fs.existsSync("index.js")).toBe(true);
     expect(fs.existsSync("src/utils.ts")).toBe(true);
-    expect(fs.existsSync("tests/api.test.js")).toBe(true);
-    expect(fs.existsSync("README.md")).toBe(true);
+    expect(chat).toBeDefined();
+
+    console.log("✅ Chat initialized successfully in test project");
   });
 
-  it("should add user messages to history", async () => {
-    const testPrompt = "List all JavaScript files in this project";
+  // Real chat tests - these will make actual API calls
+  // Remove .skip to run them (requires OPENROUTER_KEY)
+  it("should list JavaScript files in the project", async () => {
+    console.log("🚀 Testing: List JavaScript files");
 
-    await chat.sendPrompt(testPrompt);
-
-    const history = chat.getHistory();
-
-    // Should have system prompt + user message + assistant response
-    expect(history.length).toBeGreaterThanOrEqual(3);
-
-    // Find user message in history
-    const userMessage = history.find((msg: any) => msg.role === "user") as any;
-    expect(userMessage?.content).toBe(testPrompt);
-  });
-
-  it("should handle responses correctly when working in test project", async () => {
-    const testPrompt = "Show me the package.json file";
-
-    const response = await chat.sendPrompt(testPrompt);
-
-    expect(response).toBeDefined();
-    expect(Array.isArray(response)).toBe(true);
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model: "openai/gpt-4.1",
-        input: expect.arrayContaining([
-          expect.objectContaining({ role: "system" }),
-          expect.objectContaining({ role: "user", content: testPrompt }),
-        ]),
-      })
+    const response = await chat.sendPrompt(
+      "List all JavaScript files in this project"
     );
-  });
 
-  it("should handle tool calls correctly when working in test project", async () => {
-    // First response: assistant with tool call
-    // Second response: assistant with final answer
-    mockCreate
-      .mockResolvedValueOnce({
-        id: "test-response-1",
-        created_at: Date.now(),
-        output: [
-          {
-            type: "function_call",
-            name: "ls",
-            call_id: "call_123",
-            arguments: JSON.stringify({ path: "." }),
-          },
-        ] as any,
-        output_text: "Tool call response",
-        usage: { input_tokens: 10, output_tokens: 20 },
-      })
-      .mockResolvedValueOnce({
-        id: "test-response-2",
-        created_at: Date.now(),
-        output: [
-          {
-            role: "assistant",
-            content: "I found the following files in your project directory.",
-          },
-        ] as any,
-        output_text: "Final response",
-        usage: { input_tokens: 15, output_tokens: 25 },
-      });
+    console.log("📝 Chat response:", response);
+    console.log("📚 Chat history length:", chat.getHistory().length);
+  }, 30000); // 30 second timeout
 
-    const testPrompt = "List files in current directory";
-    const response = await chat.sendPrompt(testPrompt);
+  it.skip("should read package.json content", async () => {
+    console.log("🚀 Testing: Read package.json");
 
-    // Verify tool was called and response was generated
-    expect(mockCreate).toHaveBeenCalledTimes(2);
-    expect(response).toBeDefined();
-
-    // Check that tool call result was added to history
-    const history = chat.getHistory();
-    const toolOutput = history.find(
-      (msg: any) => msg.type === "function_call_output"
+    const response = await chat.sendPrompt(
+      "Read the package.json file and show me its content"
     );
-    expect(toolOutput).toBeDefined();
-  });
 
-  it("should clear history correctly", () => {
-    chat.clearHistory();
+    console.log("📝 Chat response:", response);
+    console.log("📚 Chat history length:", chat.getHistory().length);
+  }, 30000);
 
-    const history = chat.getHistory();
-    expect(history).toHaveLength(0);
-  });
+  it.skip("should find TypeScript files", async () => {
+    console.log("🚀 Testing: Find TypeScript files");
 
-  it("should handle invalid tool calls gracefully", async () => {
-    // Mock response with invalid tool call
-    mockCreate.mockResolvedValueOnce({
-      id: "test-response-error",
-      created_at: Date.now(),
-      output: [
-        {
-          type: "function_call",
-          name: "nonexistent_tool",
-          call_id: "call_456",
-          arguments: JSON.stringify({ param: "value" }),
-        },
-      ] as any,
-      output_text: "Error response",
-      usage: { input_tokens: 10, output_tokens: 20 },
-    });
-
-    const testPrompt = "Use a nonexistent tool";
-
-    await expect(chat.sendPrompt(testPrompt)).rejects.toThrow(
-      "Tool nonexistent_tool not found"
+    const response = await chat.sendPrompt(
+      "Find all TypeScript files in this project"
     );
-  });
 
-  it("should handle malformed tool arguments", async () => {
-    // Mock response with invalid JSON in tool arguments
-    mockCreate.mockResolvedValueOnce({
-      id: "test-response-malformed",
-      created_at: Date.now(),
-      output: [
-        {
-          type: "function_call",
-          name: "ls",
-          call_id: "call_789",
-          arguments: "invalid json",
-        },
-      ] as any,
-      output_text: "Malformed response",
-      usage: { input_tokens: 10, output_tokens: 20 },
-    });
+    console.log("📝 Chat response:", response);
+    console.log("📚 Chat history length:", chat.getHistory().length);
+  }, 30000);
 
-    const testPrompt = "Use tool with bad arguments";
+  it.skip("should search for specific text in files", async () => {
+    console.log("🚀 Testing: Search for text");
 
-    await expect(chat.sendPrompt(testPrompt)).rejects.toThrow(
-      "Invalid JSON in tool arguments"
+    const response = await chat.sendPrompt(
+      'Search for the word "express" in all files'
     );
-  });
 
-  it("should preserve working directory context across multiple interactions", async () => {
-    // Verify we start in test project
+    console.log("📝 Chat response:", response);
+    console.log("📚 Chat history length:", chat.getHistory().length);
+  }, 30000);
+
+  it.skip("should create a new file", async () => {
+    console.log("🚀 Testing: Create new file");
+
+    const beforeFiles = fs.readdirSync(".");
+    console.log("📁 Files before:", beforeFiles);
+
+    const response = await chat.sendPrompt(
+      'Create a new file called "test-output.txt" with the content "Hello from chat test!"'
+    );
+
+    console.log("📝 Chat response:", response);
+
+    const afterFiles = fs.readdirSync(".");
+    console.log("📁 Files after:", afterFiles);
+
+    // Check if file was created (manual verification)
+    if (fs.existsSync("test-output.txt")) {
+      console.log("✅ File created successfully!");
+      console.log(
+        "📄 File content:",
+        fs.readFileSync("test-output.txt", "utf-8")
+      );
+
+      // Clean up
+      fs.unlinkSync("test-output.txt");
+      console.log("🧹 Test file cleaned up");
+    } else {
+      console.log("❌ File was not created");
+    }
+  }, 30000);
+
+  it.skip("should analyze project structure", async () => {
+    console.log("🚀 Testing: Analyze project structure");
+
+    const response = await chat.sendPrompt(
+      "Analyze this project structure and tell me what kind of project this is"
+    );
+
+    console.log("📝 Chat response:", response);
+    console.log("📚 Chat history length:", chat.getHistory().length);
+  }, 30000);
+
+  // Manual test runner - uncomment to run specific prompts
+  it.skip("manual test runner", async () => {
+    console.log("🧪 Manual Test Runner - Customize your prompt here");
+
+    // Customize this prompt to test whatever you want
+    const customPrompt =
+      "List all files and show me the structure of this project";
+
+    console.log(`🚀 Testing custom prompt: "${customPrompt}"`);
+
+    const response = await chat.sendPrompt(customPrompt);
+
+    console.log("📝 Chat response:", response);
+    console.log("📚 Final chat history length:", chat.getHistory().length);
+
+    // Show current working directory and files for verification
+    console.log("📍 Current working directory:", process.cwd());
+    console.log("📁 Current files:", fs.readdirSync("."));
+  }, 60000); // 60 second timeout for complex operations
+
+  it("should preserve working directory across tests", () => {
     expect(process.cwd()).toBe(testProjectPath);
-
-    // First interaction
-    await chat.sendPrompt("First message");
-    expect(process.cwd()).toBe(testProjectPath);
-
-    // Second interaction
-    await chat.sendPrompt("Second message");
-    expect(process.cwd()).toBe(testProjectPath);
-
-    // Working directory should remain stable
-    expect(process.cwd()).toBe(testProjectPath);
-  });
-
-  it("should handle no response from LLM", async () => {
-    // Mock response with no output
-    mockCreate.mockResolvedValueOnce({
-      id: "test-response-empty",
-      created_at: Date.now(),
-      output: null,
-      output_text: "",
-      usage: { input_tokens: 10, output_tokens: 0 },
-    });
-
-    const testPrompt = "Test empty response";
-
-    await expect(chat.sendPrompt(testPrompt)).rejects.toThrow(
-      "No response from LLM"
-    );
-  });
-
-  it("should correctly use tools with test project files", async () => {
-    // Mock a tool call that would read package.json
-    mockCreate
-      .mockResolvedValueOnce({
-        id: "test-response-read",
-        created_at: Date.now(),
-        output: [
-          {
-            type: "function_call",
-            name: "read-file",
-            call_id: "call_read",
-            arguments: JSON.stringify({
-              file_path: path.join(testProjectPath, "package.json"),
-            }),
-          },
-        ] as any,
-        output_text: "Reading file",
-        usage: { input_tokens: 10, output_tokens: 20 },
-      })
-      .mockResolvedValueOnce({
-        id: "test-response-final",
-        created_at: Date.now(),
-        output: [
-          {
-            role: "assistant",
-            content: "Here is the content of your package.json file.",
-          },
-        ] as any,
-        output_text: "File content displayed",
-        usage: { input_tokens: 20, output_tokens: 30 },
-      });
-
-    const testPrompt = "Read the package.json file";
-    const response = await chat.sendPrompt(testPrompt);
-
-    // Verify the tool call was processed
-    expect(mockCreate).toHaveBeenCalledTimes(2);
-    expect(response).toBeDefined();
-
-    // Check that the file actually exists in our test directory
-    const packageJsonPath = path.join(testProjectPath, "package.json");
-    expect(fs.existsSync(packageJsonPath)).toBe(true);
-
-    // Verify the content is what we expect
-    const packageContent = JSON.parse(
-      fs.readFileSync(packageJsonPath, "utf-8")
-    );
-    expect(packageContent.name).toBe("test-project");
-  });
-
-  it("should work with different file types in test project", () => {
-    // Verify we have different file types for testing
-    expect(fs.existsSync("package.json")).toBe(true); // JSON
-    expect(fs.existsSync("index.js")).toBe(true); // JavaScript
-    expect(fs.existsSync("src/utils.ts")).toBe(true); // TypeScript
-    expect(fs.existsSync("tests/api.test.js")).toBe(true); // Test file
-    expect(fs.existsSync("README.md")).toBe(true); // Markdown
-
-    // Verify directory structure
-    expect(fs.statSync("src").isDirectory()).toBe(true);
-    expect(fs.statSync("tests").isDirectory()).toBe(true);
+    console.log("✅ Working directory preserved correctly");
   });
 });

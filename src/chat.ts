@@ -2,8 +2,12 @@ import OpenAI from "openai";
 import { ToolRegistry, getBaseToolRegistry } from "./tools/tool-registry";
 import { Tool, ToolResult } from "./tools/base-tool";
 import { systemPrompt } from "./prompt";
-type ChatInput = OpenAI.Responses.ResponseInputItem;
+import { config } from "dotenv";
 
+// Load environment variables from .env file
+config();
+
+type ChatInput = OpenAI.Responses.ResponseInputItem;
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_KEY,
