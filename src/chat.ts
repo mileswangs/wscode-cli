@@ -7,23 +7,26 @@ import { config } from "dotenv";
 // Load environment variables from .env file
 config();
 
-type ChatInput = OpenAI.Responses.ResponseInputItem;
+type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_KEY,
 });
 
-async function llmCall(input: ChatInput[], tools?: OpenAI.Responses.Tool[]) {
-  return await openai.responses.create({
-    model: "openai/gpt-4.1",
-    input: input,
+async function llmCall(
+  messages: ChatMessage[],
+  tools: OpenAI.Chat.Completions.ChatCompletionFunctionTool[]
+) {
+  const resp = await openai.chat.completions.create({
+    model: "anthropic/claude-sonnet-4",
+    messages: messages,
     tools: tools,
-    tool_choice: tools && tools.length > 0 ? "auto" : undefined,
   });
+  return resp.choices?.[0].message;
 }
 
 export class Chat {
-  private history: ChatInput[];
+  private history: ChatMessage[];
   private toolRegistry: ToolRegistry;
 
   constructor() {
@@ -37,18 +40,20 @@ export class Chat {
   }
 
   private async executeToolCall(
-    toolCall: OpenAI.Responses.ResponseFunctionToolCall
+    toolCall: OpenAI.Chat.Completions.ChatCompletionMessageFunctionToolCall
   ): Promise<ToolResult> {
-    const tool = this.toolRegistry.getTool(toolCall.name);
+    const tool = this.toolRegistry.getTool(toolCall.function.name);
     if (!tool) {
-      throw new Error(`Tool ${toolCall.name} not found`);
+      throw new Error(`Tool ${toolCall.function.name} not found`);
     }
 
     let params;
     try {
-      params = JSON.parse(toolCall.arguments);
+      params = JSON.parse(toolCall.function.arguments);
     } catch (error) {
-      throw new Error(`Invalid JSON in tool arguments: ${toolCall.arguments}`);
+      throw new Error(
+        `Invalid JSON in tool arguments: ${toolCall.function.arguments}`
+      );
     }
 
     const validationError = tool.validateToolParams(params);
@@ -68,33 +73,33 @@ export class Chat {
     const tools = this.toolRegistry.getAllToolsSchema();
 
     while (true) {
-      const response = await llmCall(this.history, tools);
-      const output = response.output;
+      const message = await llmCall(this.history, tools);
 
-      if (!output) {
+      if (!message) {
         throw new Error("No response from LLM");
       }
       // 添加助手响应到历史
-      this.history = this.history.concat(output);
+      this.history = this.history.concat(message);
 
-      const toolCalls = output.filter((item) => item.type === "function_call");
-      if (toolCalls.length === 0) {
+      if (!message.tool_calls?.length) {
         // 如果没有工具调用，直接返回响应
-        console.log(this.history);
-        return output;
+        return message;
       }
-      for (const toolCall of toolCalls) {
+      for (const toolCall of message.tool_calls) {
+        if (toolCall.type !== "function") {
+          continue;
+        }
         const result = await this.executeToolCall(toolCall);
         this.history.push({
-          type: "function_call_output",
-          call_id: toolCall.call_id,
-          output: result.toString(),
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: result.llmContent,
         });
       }
     }
   }
 
-  getHistory(): ChatInput[] {
+  getHistory() {
     return [...this.history];
   }
 

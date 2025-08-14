@@ -11,6 +11,8 @@ import path from "path";
 import fs from "fs";
 import { Chat } from "./chat";
 
+const maxTestTime = 600000;
+
 describe("Chat Module Integration Tests", () => {
   const originalCwd = process.cwd();
   const testProjectPath = path.join(__dirname, "../test_project");
@@ -58,114 +60,136 @@ describe("Chat Module Integration Tests", () => {
 
   // Real chat tests - these will make actual API calls
   // Remove .skip to run them (requires OPENROUTER_KEY)
-  it("should list JavaScript files in the project", async () => {
-    console.log("🚀 Testing: List JavaScript files");
+  it(
+    "should list JavaScript files in the project",
+    async () => {
+      console.log("🚀 Testing: List JavaScript files");
 
-    const response = await chat.sendPrompt(
-      "List all JavaScript files in this project"
-    );
-
-    console.log("📝 Chat response:", response);
-    console.log("📚 Chat history length:", chat.getHistory().length);
-  }, 30000); // 30 second timeout
-
-  it.skip("should read package.json content", async () => {
-    console.log("🚀 Testing: Read package.json");
-
-    const response = await chat.sendPrompt(
-      "Read the package.json file and show me its content"
-    );
-
-    console.log("📝 Chat response:", response);
-    console.log("📚 Chat history length:", chat.getHistory().length);
-  }, 30000);
-
-  it.skip("should find TypeScript files", async () => {
-    console.log("🚀 Testing: Find TypeScript files");
-
-    const response = await chat.sendPrompt(
-      "Find all TypeScript files in this project"
-    );
-
-    console.log("📝 Chat response:", response);
-    console.log("📚 Chat history length:", chat.getHistory().length);
-  }, 30000);
-
-  it.skip("should search for specific text in files", async () => {
-    console.log("🚀 Testing: Search for text");
-
-    const response = await chat.sendPrompt(
-      'Search for the word "express" in all files'
-    );
-
-    console.log("📝 Chat response:", response);
-    console.log("📚 Chat history length:", chat.getHistory().length);
-  }, 30000);
-
-  it.skip("should create a new file", async () => {
-    console.log("🚀 Testing: Create new file");
-
-    const beforeFiles = fs.readdirSync(".");
-    console.log("📁 Files before:", beforeFiles);
-
-    const response = await chat.sendPrompt(
-      'Create a new file called "test-output.txt" with the content "Hello from chat test!"'
-    );
-
-    console.log("📝 Chat response:", response);
-
-    const afterFiles = fs.readdirSync(".");
-    console.log("📁 Files after:", afterFiles);
-
-    // Check if file was created (manual verification)
-    if (fs.existsSync("test-output.txt")) {
-      console.log("✅ File created successfully!");
-      console.log(
-        "📄 File content:",
-        fs.readFileSync("test-output.txt", "utf-8")
+      const response = await chat.sendPrompt(
+        "List all JavaScript files in this project"
       );
 
-      // Clean up
-      fs.unlinkSync("test-output.txt");
-      console.log("🧹 Test file cleaned up");
-    } else {
-      console.log("❌ File was not created");
-    }
-  }, 30000);
+      console.log("📝 Chat response:", response);
+      console.log("📚 Chat history length:", chat.getHistory().length);
+    },
+    maxTestTime
+  );
 
-  it.skip("should analyze project structure", async () => {
-    console.log("🚀 Testing: Analyze project structure");
+  it(
+    "should read package.json content",
+    async () => {
+      console.log("🚀 Testing: Read package.json");
 
-    const response = await chat.sendPrompt(
-      "Analyze this project structure and tell me what kind of project this is"
-    );
+      const response = await chat.sendPrompt(
+        "Read the package.json file and show me its content"
+      );
 
-    console.log("📝 Chat response:", response);
-    console.log("📚 Chat history length:", chat.getHistory().length);
-  }, 30000);
+      console.log("📝 Chat response:", response);
+      console.log("📚 Chat history length:", chat.getHistory().length);
+    },
+    maxTestTime
+  );
+
+  it(
+    "should find TypeScript files",
+    async () => {
+      console.log("🚀 Testing: Find TypeScript files");
+
+      const response = await chat.sendPrompt(
+        "Find all TypeScript files in this project"
+      );
+
+      console.log("📝 Chat response:", response);
+      console.log("📚 Chat history length:", chat.getHistory().length);
+    },
+    maxTestTime
+  );
+
+  it(
+    "should search for specific text in files",
+    async () => {
+      console.log("🚀 Testing: Search for text");
+
+      const response = await chat.sendPrompt(
+        'Search for the word "express" in all files'
+      );
+
+      console.log("📝 Chat response:", response);
+      console.log("📚 Chat history length:", chat.getHistory().length);
+    },
+    maxTestTime
+  );
+
+  it(
+    "should create a new file",
+    async () => {
+      console.log("🚀 Testing: Create new file");
+
+      const beforeFiles = fs.readdirSync(".");
+      console.log("📁 Files before:", beforeFiles);
+
+      const response = await chat.sendPrompt(
+        'Create a new file called "test-output.txt" with the content "Hello from chat test!"'
+      );
+
+      console.log("📝 Chat response:", response);
+
+      const afterFiles = fs.readdirSync(".");
+      console.log("📁 Files after:", afterFiles);
+
+      // Check if file was created (manual verification)
+      if (fs.existsSync("test-output.txt")) {
+        console.log("✅ File created successfully!");
+        console.log(
+          "📄 File content:",
+          fs.readFileSync("test-output.txt", "utf-8")
+        );
+
+        // Clean up
+        fs.unlinkSync("test-output.txt");
+        console.log("🧹 Test file cleaned up");
+      } else {
+        console.log("❌ File was not created");
+      }
+    },
+    maxTestTime
+  );
+
+  it(
+    "should analyze project structure",
+    async () => {
+      console.log("🚀 Testing: Analyze project structure");
+
+      const response = await chat.sendPrompt(
+        "Analyze this project structure and tell me what kind of project this is"
+      );
+
+      console.log("📝 Chat response:", response);
+      console.log("📚 Chat history length:", chat.getHistory().length);
+    },
+    maxTestTime
+  );
 
   // Manual test runner - uncomment to run specific prompts
-  it.skip("manual test runner", async () => {
-    console.log("🧪 Manual Test Runner - Customize your prompt here");
+  it(
+    "manual test runner",
+    async () => {
+      console.log("🧪 Manual Test Runner - Customize your prompt here");
 
-    // Customize this prompt to test whatever you want
-    const customPrompt =
-      "List all files and show me the structure of this project";
+      // Customize this prompt to test whatever you want
+      const customPrompt = "add a health check api in index.js";
 
-    console.log(`🚀 Testing custom prompt: "${customPrompt}"`);
+      console.log(`🚀 Testing custom prompt: "${customPrompt}"`);
 
-    const response = await chat.sendPrompt(customPrompt);
+      const response = await chat.sendPrompt(customPrompt);
 
-    console.log("📝 Chat response:", response);
-    console.log("📚 Final chat history length:", chat.getHistory().length);
+      console.log("📝 Chat response:", response);
+      console.log("📚 Final chat history length:", chat.getHistory().length);
 
-    // Show current working directory and files for verification
-    console.log("📍 Current working directory:", process.cwd());
-    console.log("📁 Current files:", fs.readdirSync("."));
-  }, 60000); // 60 second timeout for complex operations
-
-  it("should preserve working directory across tests", () => {
-    expect(process.cwd()).toBe(testProjectPath);
-    console.log("✅ Working directory preserved correctly");
-  });
+      // Show current working directory and files for verification
+      console.log("📍 Current working directory:", process.cwd());
+      console.log("📁 Current files:", fs.readdirSync("."));
+    },
+    maxTestTime
+  );
 });

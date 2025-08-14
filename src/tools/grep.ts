@@ -49,10 +49,11 @@ export class GrepTool implements Tool<GrepToolParams, ToolResult> {
       include: {
         type: "string",
         description:
-          "File pattern to include in the search (e.g. '*.js', '*.{ts,tsx}')",
+          "Optional: File pattern to include in the search (e.g. '*.js', '*.{ts,tsx}')",
       },
     },
     required: ["pattern"],
+    additionalProperties: false,
   };
 
   validateToolParams(params: GrepToolParams): string | null {

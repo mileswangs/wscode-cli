@@ -33,6 +33,7 @@ export class ReadFileTool implements Tool<ReadFileParams, ToolResult> {
       },
     },
     required: ["absolute_path"],
+    additionalProperties: false,
   };
 
   validateToolParams(params: ReadFileParams): string | null {

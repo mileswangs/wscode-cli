@@ -34,6 +34,7 @@ export class EditFileTool implements Tool<EditToolParams, ToolResult> {
       },
     },
     required: ["file_path", "old_content", "new_content"],
+    additionalProperties: false,
   };
 
   validateToolParams(params: EditToolParams): string | null {

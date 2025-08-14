@@ -4,6 +4,7 @@ import { editFileTool } from "./edit-file";
 import { grepTool } from "./grep";
 import { lsTool } from "./ls";
 import { readFileTool } from "./read-file";
+import { globTool } from "./glob";
 
 export class ToolRegistry {
   private tools: Map<string, Tool<any, ToolResult>>;
@@ -35,14 +36,16 @@ export class ToolRegistry {
     return Array.from(this.tools.values());
   }
 
-  getAllToolsSchema(): OpenAI.Responses.FunctionTool[] {
+  getAllToolsSchema(): OpenAI.Chat.Completions.ChatCompletionFunctionTool[] {
     return this.getAllTools().map(
-      (tool): OpenAI.Responses.FunctionTool => ({
+      (tool): OpenAI.Chat.Completions.ChatCompletionFunctionTool => ({
         type: "function",
-        name: tool.name,
-        description: tool.description,
-        parameters: tool.schema,
-        strict: true,
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.schema,
+          strict: true,
+        },
       })
     );
   }
@@ -62,5 +65,6 @@ export const getBaseToolRegistry = (): ToolRegistry => {
   baseToolRegistry.registerTool(grepTool);
   baseToolRegistry.registerTool(readFileTool);
   baseToolRegistry.registerTool(editFileTool);
+  baseToolRegistry.registerTool(globTool);
   return baseToolRegistry;
 };

@@ -28,6 +28,16 @@ app.post("/users", (req, res) => {
   res.status(201).json(newUser);
 });
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || "development"
+  });
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
