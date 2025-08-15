@@ -26,6 +26,13 @@ esbuild.*
 .git/
 .gitignore
 
+# Only include the main bundle
+dist/*
+!dist/main.js
+
 # Other
 .DS_Store
 *.tgz
+package-test.sh
+test-command-name.sh
+verify-package.sh

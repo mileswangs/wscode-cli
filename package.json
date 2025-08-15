@@ -8,14 +8,13 @@
   },
   "type": "module",
   "files": [
-    "dist/**/*",
+    "dist/main.js",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "dev": "tsx src/main.ts",
-    "start": "tsx src/main.ts",
-    "start:prod": "node dist/main.js",
+    "start": "node dist/main.js",
     "build": "node build.mjs",
     "build:types": "tsc --noEmit",
     "prepublishOnly": "pnpm run build",
@@ -53,6 +52,7 @@
     "glob": "^11.0.3",
     "ink": "^6.2.0",
     "openai": "^5.12.2",
-    "react": "^19.1.1"
+    "react": "^19.1.1",
+    "react-devtools-core": "^6.1.5"
   }
 }
