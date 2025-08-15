@@ -1,0 +1,17 @@
+{
+  "name": "wscode",
+  "version": "1.0.0",
+  "description": "AI-powered CLI tool with file management capabilities",
+  "main": "dist/main.js",
+  "bin": {
+    "wscode": "dist/main.js"
+  },
+  "type": "module",
+  "files": ["dist/main.js", "README.md", "LICENSE"],
+  "keywords": ["cli", "ai", "file-management", "glob", "grep", "typescript"],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
