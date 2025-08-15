@@ -29,6 +29,7 @@ esbuild.*
 # Only include the main bundle
 dist/*
 !dist/main.js
+*.map
 
 # Other
 .DS_Store
