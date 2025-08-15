@@ -64,8 +64,47 @@ async function buildProject() {
       jsx: "automatic",
       jsxDev: false,
 
-      // Handle Node.js built-ins
-      packages: "external", // This will keep Node.js built-ins external
+      // Handle Node.js built-ins - only keep Node.js built-ins external, bundle npm packages
+      external: [
+        // Node.js built-in modules
+        "fs",
+        "fs/promises",
+        "path",
+        "os",
+        "util",
+        "crypto",
+        "events",
+        "stream",
+        "buffer",
+        "url",
+        "querystring",
+        "http",
+        "https",
+        "net",
+        "tls",
+        "zlib",
+        "child_process",
+        "cluster",
+        "dgram",
+        "dns",
+        "domain",
+        "module",
+        "perf_hooks",
+        "process",
+        "punycode",
+        "readline",
+        "repl",
+        "string_decoder",
+        "timers",
+        "tty",
+        "v8",
+        "vm",
+        "worker_threads",
+        "assert",
+        "constants",
+        // Optional development dependencies that shouldn't be bundled
+        "react-devtools-core",
+      ],
 
       // Advanced options
       splitting: false, // Must be false for single file output
