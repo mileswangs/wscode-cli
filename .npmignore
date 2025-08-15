@@ -1,0 +1,31 @@
+# Source files
+src/
+*.ts
+*.tsx
+tsconfig.json
+vitest.config.ts
+build.mjs
+build-test.sh
+
+# Development files
+.env*
+.vscode/
+.github/
+*.log
+node_modules/
+test_project/
+
+# Test files
+**/*.test.*
+coverage/
+
+# Build tools
+esbuild.*
+
+# Git
+.git/
+.gitignore
+
+# Other
+.DS_Store
+*.tgz
