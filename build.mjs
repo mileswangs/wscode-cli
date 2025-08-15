@@ -105,7 +105,6 @@ async function buildProject() {
         // Optional development dependencies that shouldn't be bundled
         "react-devtools-core",
       ],
-
       // Advanced options
       splitting: false, // Must be false for single file output
       chunkNames: "[name]",
