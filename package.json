@@ -16,8 +16,7 @@
     "dev": "tsx src/main.ts",
     "start": "node dist/main.js",
     "build": "node build.mjs",
-    "build:types": "tsc --noEmit",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "pnpm run build:prod",
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
@@ -52,7 +51,6 @@
     "glob": "^11.0.3",
     "ink": "^6.2.0",
     "openai": "^5.12.2",
-    "react": "^19.1.1",
-    "react-devtools-core": "^6.1.5"
+    "react": "^19.1.1"
   }
 }
