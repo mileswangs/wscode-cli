@@ -1,5 +1,5 @@
 {
-  "name": "wscode",
+  "name": "wscode-cli",
   "version": "1.0.0",
   "description": "AI-powered CLI tool with file management capabilities",
   "main": "dist/main.js",
@@ -16,7 +16,7 @@
     "dev": "tsx src/main.ts",
     "start": "node dist/main.js",
     "build": "node build.mjs",
-    "prepublishOnly": "pnpm run build:prod",
+    "prepublishOnly": "pnpm run build",
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
