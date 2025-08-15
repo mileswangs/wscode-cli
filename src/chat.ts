@@ -83,7 +83,7 @@ export class Chat {
 
       if (!message.tool_calls?.length) {
         // 如果没有工具调用，直接返回响应
-        return message;
+        return message.content;
       }
       for (const toolCall of message.tool_calls) {
         if (toolCall.type !== "function") {

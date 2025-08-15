@@ -1,12 +1,14 @@
-# Gemini CLI Copy
+# wsCode cli
 
-一个基于 TypeScript 的 CLI 工具，集成了 OpenAI GPT 模型和文件系统工具。
+一个基于 TypeScript 和 Ink 的现代化 CLI 工具，集成了 AI 助手和强大的文件系统工具。
 
 ## 功能特性
 
-- 🤖 集成 OpenAI GPT-4 模型
-- 📁 文件系统工具（读取文件、列出目录）
-- 🛠️ 可扩展的工具系统
+- 🤖 集成 Anthropic Claude 模型 (通过 OpenRouter)
+- 🎨 美观的 Ink React 终端界面
+- 📁 强大的文件系统工具（文件读写、目录操作、glob 搜索）
+- 🔍 高效的文本搜索和 grep 功能
+- 🛠️ 可扩展的工具系统架构
 - ✅ 完整的单元测试覆盖
 - 🔧 TypeScript + Vitest 开发环境
 
@@ -17,6 +19,34 @@
 ```bash
 pnpm install
 ```
+
+2. 设置环境变量：
+
+```bash
+cp .env.example .env
+# 编辑 .env 文件，添加你的 OpenRouter API Key
+```
+
+## 使用方法
+
+### 启动 CLI 界面
+
+```bash
+# 开发模式
+pnpm dev
+
+# 或者使用 start
+pnpm start
+```
+
+### CLI 界面功能
+
+- **欢迎界面**: 显示功能介绍，按 Enter 开始对话
+- **聊天界面**: 与 AI 助手进行交互，支持文件操作工具
+- **快捷键**:
+  - `Enter`: 发送消息
+  - `ESC`: 返回欢迎界面
+  - `Ctrl+C`: 退出应用
 
 2. 配置环境变量：
 
