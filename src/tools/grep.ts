@@ -2,7 +2,8 @@ import { readdirSync, statSync, readFileSync } from "fs";
 import { join, relative } from "path";
 import { glob } from "glob";
 import Ajv from "ajv";
-import { Tool, ToolResult } from "./base-tool";
+import { isWithinRoot, Tool, ToolResult, validateSchema } from "./base-tool";
+import path from "path";
 
 export interface GrepToolParams {
   /**
@@ -56,19 +57,16 @@ export class GrepTool implements Tool<GrepToolParams, ToolResult> {
     additionalProperties: false,
   };
 
-  validateToolParams(params: GrepToolParams): string | null {
-    const ajv = new Ajv();
-    const validate = ajv.compile(this.schema);
-    const valid = validate(params);
+  private rootDirectory: string;
 
-    if (!valid) {
-      return (
-        validate.errors
-          ?.map((error) => {
-            return `${error.keyword}: ${error.message}`;
-          })
-          .join(", ") || "Validation failed"
-      );
+  constructor(rootDirectory: string) {
+    this.rootDirectory = path.resolve(rootDirectory);
+  }
+
+  validateToolParams(params: GrepToolParams): string | null {
+    const validationError = validateSchema(this.schema, params);
+    if (validationError) {
+      return validationError;
     }
 
     // Validate pattern is a valid regex
@@ -78,17 +76,24 @@ export class GrepTool implements Tool<GrepToolParams, ToolResult> {
       return `Invalid regular expression pattern: ${params.pattern}`;
     }
 
+    // Validate path if provided
+    if (params.path && !isWithinRoot(params.path, this.rootDirectory)) {
+      return `Path must be within the root directory (${this.rootDirectory}): ${params.path}`;
+    }
+
     return null;
   }
 
   async execute(params: GrepToolParams): Promise<ToolResult> {
     const validationError = this.validateToolParams(params);
     if (validationError) {
-      throw new Error(`Invalid parameters for grep tool: ${validationError}`);
+      return {
+        llmContent: validationError,
+      };
     }
 
     try {
-      const searchPath = params.path || process.cwd();
+      const searchPath = params.path || this.rootDirectory;
       const includePattern = params.include || "**/*";
       const regex = new RegExp(params.pattern, "gi");
 
@@ -218,4 +223,4 @@ export class GrepTool implements Tool<GrepToolParams, ToolResult> {
   }
 }
 
-export const grepTool = new GrepTool();
+export const grepTool = new GrepTool(process.cwd());

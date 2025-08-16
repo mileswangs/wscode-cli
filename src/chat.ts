@@ -69,11 +69,6 @@ export class Chat {
       );
     }
 
-    const validationError = tool.validateToolParams(params);
-    if (validationError) {
-      throw new Error(`Tool validation failed: ${validationError}`);
-    }
-
     return await tool.execute(params);
   }
 

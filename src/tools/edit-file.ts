@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, statSync } from "fs";
 import Ajv from "ajv";
-import { Tool, ToolResult } from "./base-tool";
+import { isWithinRoot, Tool, ToolResult, validateSchema } from "./base-tool";
 import path from "path";
 
 export interface EditToolParams {
@@ -37,26 +37,24 @@ export class EditFileTool implements Tool<EditToolParams, ToolResult> {
     additionalProperties: false,
   };
 
-  validateToolParams(params: EditToolParams): string | null {
-    const ajv = new Ajv();
-    const validate = ajv.compile(this.schema);
-    const valid = validate(params);
+  private rootDirectory: string;
 
-    if (!valid) {
-      return (
-        validate.errors
-          ?.map((error) => {
-            const path = error.instancePath
-              ? error.instancePath.substring(1)
-              : error.keyword;
-            return `${path}: ${error.message}`;
-          })
-          .join(", ") || "Validation failed"
-      );
+  constructor(rootDirectory: string) {
+    this.rootDirectory = path.resolve(rootDirectory);
+  }
+
+  validateToolParams(params: EditToolParams): string | null {
+    const validationError = validateSchema(this.schema, params);
+    if (validationError) {
+      return validationError;
     }
 
     if (!path.isAbsolute(params.file_path)) {
       return `File path must be absolute: ${params.file_path}`;
+    }
+
+    if (!isWithinRoot(params.file_path, this.rootDirectory)) {
+      return `Path must be within the root directory (${this.rootDirectory}): ${params.file_path}`;
     }
 
     return null;
@@ -65,9 +63,9 @@ export class EditFileTool implements Tool<EditToolParams, ToolResult> {
   async execute(params: EditToolParams): Promise<ToolResult> {
     const validationError = this.validateToolParams(params);
     if (validationError) {
-      throw new Error(
-        `Invalid parameters for edit_file tool: ${validationError}`
-      );
+      return {
+        llmContent: validationError,
+      };
     }
 
     try {
@@ -145,4 +143,4 @@ The file has been successfully updated.`;
   }
 }
 
-export const editFileTool = new EditFileTool();
+export const editFileTool = new EditFileTool(process.cwd());

@@ -1,7 +1,7 @@
 import { readdirSync, statSync } from "fs";
-import { join } from "path";
+import path, { join } from "path";
 import Ajv from "ajv";
-import { Tool, ToolResult } from "./base-tool";
+import { isWithinRoot, Tool, ToolResult, validateSchema } from "./base-tool";
 interface LsParams {
   path: string;
 }
@@ -31,21 +31,20 @@ export class LsTool implements Tool<LsParams, ToolResult> {
     additionalProperties: false,
   };
 
-  validateToolParams(params: LsParams): string | null {
-    const ajv = new Ajv();
-    const validate = ajv.compile(this.schema);
-    const valid = validate(params);
-    console.log("Validation result:", valid);
-    console.log("Validation errors:", validate.errors);
+  private rootDirectory: string;
 
-    if (!valid) {
-      return (
-        validate.errors
-          ?.map((error) => {
-            return `${error.keyword}: ${error.message}`;
-          })
-          .join(", ") || "Validation failed"
-      );
+  constructor(rootDirectory: string) {
+    this.rootDirectory = path.resolve(rootDirectory);
+  }
+
+  validateToolParams(params: LsParams): string | null {
+    const validationError = validateSchema(this.schema, params);
+    if (validationError) {
+      return validationError;
+    }
+
+    if (!isWithinRoot(params.path, this.rootDirectory)) {
+      return `Path must be within the root directory (${this.rootDirectory}): ${params.path}`;
     }
 
     return null;
@@ -54,10 +53,11 @@ export class LsTool implements Tool<LsParams, ToolResult> {
   async execute(params: LsParams): Promise<ToolResult> {
     const validationError = this.validateToolParams(params);
     if (validationError) {
-      throw new Error(
-        `Invalid parameters for list_directory tool: ${validationError}`
-      );
+      return {
+        llmContent: validationError,
+      };
     }
+
     const files = readdirSync(params.path);
 
     const entries = files.map((file): FileEntry => {
@@ -81,4 +81,4 @@ export class LsTool implements Tool<LsParams, ToolResult> {
   }
 }
 
-export const lsTool = new LsTool();
+export const lsTool = new LsTool(process.cwd());

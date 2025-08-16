@@ -2,7 +2,8 @@ import { statSync } from "fs";
 import { basename, resolve } from "path";
 import { glob } from "glob";
 import Ajv from "ajv";
-import { Tool, ToolResult } from "./base-tool";
+import { isWithinRoot, Tool, ToolResult, validateSchema } from "./base-tool";
+import path from "path";
 
 /**
  * Parameters for the GlobTool
@@ -50,23 +51,25 @@ export class GlobTool implements Tool<GlobToolParams, ToolResult> {
     additionalProperties: false,
   };
 
-  validateToolParams(params: GlobToolParams): string | null {
-    const ajv = new Ajv();
-    const validate = ajv.compile(this.schema);
-    const valid = validate(params);
+  private rootDirectory: string;
 
-    if (!valid) {
-      return (
-        validate.errors
-          ?.map((error) => {
-            return `${error.keyword}: ${error.message}`;
-          })
-          .join(", ") || "Validation failed"
-      );
+  constructor(rootDirectory: string) {
+    this.rootDirectory = path.resolve(rootDirectory);
+  }
+
+  validateToolParams(params: GlobToolParams): string | null {
+    const validationError = validateSchema(this.schema, params);
+    if (validationError) {
+      return validationError;
     }
 
     if (!params.pattern || params.pattern.trim() === "") {
       return "Pattern cannot be empty";
+    }
+
+    // Validate path if provided
+    if (params.path && !isWithinRoot(params.path, this.rootDirectory)) {
+      return `Path must be within the root directory (${this.rootDirectory}): ${params.path}`;
     }
 
     return null;
@@ -75,11 +78,13 @@ export class GlobTool implements Tool<GlobToolParams, ToolResult> {
   async execute(params: GlobToolParams): Promise<ToolResult> {
     const validationError = this.validateToolParams(params);
     if (validationError) {
-      throw new Error(`Invalid parameters for glob tool: ${validationError}`);
+      return {
+        llmContent: validationError,
+      };
     }
 
     try {
-      const searchPath = params.path || process.cwd();
+      const searchPath = params.path || this.rootDirectory;
 
       // Check if search path exists and is a directory
       try {
@@ -181,4 +186,4 @@ export class GlobTool implements Tool<GlobToolParams, ToolResult> {
   }
 }
 
-export const globTool = new GlobTool();
+export const globTool = new GlobTool(process.cwd());
