@@ -43,12 +43,12 @@ function getOpenAIClient(): OpenAI {
 async function llmCall(
   messages: ChatMessage[],
   tools: OpenAI.Chat.Completions.ChatCompletionFunctionTool[],
-  trace?: LangfuseTraceClient
+  parentSpan?: LangfuseSpanClient
 ) {
   const openai = getOpenAIClient();
 
-  // Create generation span for LLM call tracking
-  const generation = trace?.generation({
+  // Create generation span for LLM call tracking under the parent span
+  const generation = parentSpan?.generation({
     name: "llm-call",
     model: "anthropic/claude-sonnet-4",
     input: messages,
@@ -183,7 +183,6 @@ export class Chat {
         userId: userId || this.userId,
       },
     });
-
     try {
       // 添加用户消息到历史
       this.history.push({
@@ -196,7 +195,7 @@ export class Chat {
       let finalResponse: string | null = null;
 
       while (true) {
-        const message = await llmCall(this.history, tools, this.currentTrace);
+        const message = await llmCall(this.history, tools, promptSpan);
 
         if (!message) {
           throw new Error("No response from LLM");
