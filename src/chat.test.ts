@@ -177,7 +177,7 @@ describe("Chat Module Integration Tests", () => {
       console.log("🧪 Manual Test Runner - Customize your prompt here");
 
       // Customize this prompt to test whatever you want
-      const customPrompt = "add a health check api in index.js";
+      const customPrompt = "看看这个项目是干嘛的";
 
       console.log(`🚀 Testing custom prompt: "${customPrompt}"`);
 

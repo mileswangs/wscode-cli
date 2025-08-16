@@ -2,21 +2,34 @@ import OpenAI from "openai";
 import { ToolRegistry, getBaseToolRegistry } from "./tools/tool-registry";
 import { Tool, ToolResult } from "./tools/base-tool";
 import { systemPrompt } from "./prompt";
-import { config } from "dotenv";
-
-// Load environment variables from .env file
-config();
 
 type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_KEY,
-});
+
+// Cached OpenAI client instance
+let openaiClient: OpenAI | null = null;
+
+// Get or create OpenAI client (singleton pattern)
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    const apiKey = process.env.OPENROUTER_KEY;
+    if (!apiKey) {
+      throw new Error("OPENROUTER_KEY environment variable is required");
+    }
+
+    openaiClient = new OpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey: apiKey,
+    });
+  }
+
+  return openaiClient;
+}
 
 async function llmCall(
   messages: ChatMessage[],
   tools: OpenAI.Chat.Completions.ChatCompletionFunctionTool[]
 ) {
+  const openai = getOpenAIClient();
   const resp = await openai.chat.completions.create({
     model: "anthropic/claude-sonnet-4",
     messages: messages,
