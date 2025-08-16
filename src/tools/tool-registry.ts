@@ -1,10 +1,10 @@
 import { OpenAI } from "openai/client";
 import { Tool, ToolResult } from "./base-tool";
-import { editFileTool } from "./edit-file";
-import { grepTool } from "./grep";
-import { lsTool } from "./ls";
-import { readFileTool } from "./read-file";
-import { globTool } from "./glob";
+import { EditFileTool, editFileTool } from "./edit-file";
+import { GrepTool, grepTool } from "./grep";
+import { LsTool, lsTool } from "./ls";
+import { ReadFileTool, readFileTool } from "./read-file";
+import { GlobTool, globTool } from "./glob";
 
 export class ToolRegistry {
   private tools: Map<string, Tool<any, ToolResult>>;
@@ -59,12 +59,23 @@ export class ToolRegistry {
   }
 }
 
-export const getBaseToolRegistry = (): ToolRegistry => {
+export const getBaseToolRegistry = (rootDirectory?: string): ToolRegistry => {
   const baseToolRegistry = new ToolRegistry();
-  baseToolRegistry.registerTool(lsTool);
-  baseToolRegistry.registerTool(grepTool);
-  baseToolRegistry.registerTool(readFileTool);
-  baseToolRegistry.registerTool(editFileTool);
-  baseToolRegistry.registerTool(globTool);
+  if (!rootDirectory) {
+    baseToolRegistry.registerTool(lsTool);
+    baseToolRegistry.registerTool(grepTool);
+    baseToolRegistry.registerTool(readFileTool);
+    baseToolRegistry.registerTool(editFileTool);
+    baseToolRegistry.registerTool(globTool);
+  }
+
+  if (rootDirectory) {
+    baseToolRegistry.registerTool(new LsTool(rootDirectory));
+    baseToolRegistry.registerTool(new GrepTool(rootDirectory));
+    baseToolRegistry.registerTool(new ReadFileTool(rootDirectory));
+    baseToolRegistry.registerTool(new EditFileTool(rootDirectory));
+    baseToolRegistry.registerTool(new GlobTool(rootDirectory));
+  }
+
   return baseToolRegistry;
 };

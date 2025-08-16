@@ -1,5 +1,6 @@
 import Ajv from "ajv";
 import path from "path";
+
 export interface Tool<TParams, TResult extends ToolResult = ToolResult> {
   name: string;
   description: string;

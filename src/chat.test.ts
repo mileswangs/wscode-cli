@@ -33,7 +33,7 @@ describe("Chat Module Integration Tests", () => {
     console.log(`🔄 Test running in: ${process.cwd()}`);
 
     // Create new chat instance for each test
-    chat = new Chat();
+    chat = new Chat(process.cwd());
   });
 
   afterEach(() => {

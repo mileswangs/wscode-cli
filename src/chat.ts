@@ -2,6 +2,12 @@ import OpenAI from "openai";
 import { ToolRegistry, getBaseToolRegistry } from "./tools/tool-registry";
 import { Tool, ToolResult } from "./tools/base-tool";
 import { systemPrompt } from "./prompt";
+import { config } from "dotenv";
+
+// Load environment variables from .env file (only in development)
+if (process.env.NODE_ENV !== "production") {
+  config();
+}
 
 type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
@@ -42,14 +48,14 @@ export class Chat {
   private history: ChatMessage[];
   private toolRegistry: ToolRegistry;
 
-  constructor() {
+  constructor(rootDirectory?: string) {
     this.history = [
       {
         role: "system",
         content: systemPrompt,
       },
     ];
-    this.toolRegistry = getBaseToolRegistry();
+    this.toolRegistry = getBaseToolRegistry(rootDirectory);
   }
 
   private async executeToolCall(
