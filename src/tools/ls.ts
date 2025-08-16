@@ -2,8 +2,6 @@ import { readdirSync, statSync } from "fs";
 import { join } from "path";
 import Ajv from "ajv";
 import { Tool, ToolResult } from "./base-tool";
-import { a } from "vitest/dist/chunks/suite.d.FvehnV49";
-
 interface LsParams {
   path: string;
 }
