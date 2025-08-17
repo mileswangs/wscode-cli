@@ -4,8 +4,6 @@ import { Tool, ToolResult } from "./tools/base-tool";
 import { systemPrompt } from "./prompt";
 import { config } from "dotenv";
 
-import { observeOpenAI } from "langfuse";
-
 import { Langfuse, LangfuseSpanClient, LangfuseTraceClient } from "langfuse";
 
 // Load environment variables from .env file (only in development)
@@ -33,12 +31,10 @@ function getOpenAIClient(): OpenAI {
       throw new Error("OPENROUTER_KEY environment variable is required");
     }
 
-    openaiClient = observeOpenAI(
-      new OpenAI({
-        baseURL: "https://openrouter.ai/api/v1",
-        apiKey: apiKey,
-      })
-    );
+    openaiClient = new OpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey: apiKey,
+    });
   }
 
   return openaiClient;
