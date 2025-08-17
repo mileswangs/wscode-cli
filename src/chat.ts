@@ -191,7 +191,6 @@ export class Chat {
       });
 
       const tools = this.toolRegistry.getAllToolsSchema();
-      let toolCallCount = 0;
       let finalResponse: string | null = null;
 
       while (true) {
@@ -215,7 +214,6 @@ export class Chat {
             continue;
           }
 
-          toolCallCount++;
           const result = await this.executeToolCall(toolCall, promptSpan);
 
           this.history.push({
@@ -230,10 +228,9 @@ export class Chat {
       promptSpan.end({
         output: {
           response: finalResponse,
-          toolCallsExecuted: toolCallCount,
         },
       });
-
+      await langfuse.flushAsync();
       return finalResponse;
     } catch (error) {
       // 记录错误到 span
