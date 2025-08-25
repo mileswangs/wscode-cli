@@ -4,7 +4,7 @@
   "description": "minimalist claude code",
   "main": "dist/main.js",
   "bin": {
-    "wscode": "dist/main.js"
+    "wscode-cli": "dist/main.js"
   },
   "type": "module",
   "files": [
