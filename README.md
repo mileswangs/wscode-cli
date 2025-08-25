@@ -25,3 +25,9 @@ npm install -g wscode-cli
 export OPENROUTER_KEY=your_openrouter_api_key
 wscode-cli
 ```
+
+### build
+
+```bash
+pnpm run build
+```
