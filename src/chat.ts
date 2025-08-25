@@ -50,10 +50,8 @@ async function llmCall(
 export class Chat {
   private history: ChatMessage[];
   private toolRegistry: ToolRegistry;
-  private sessionId: string;
-  private userId?: string;
 
-  constructor(rootDirectory?: string, userId?: string) {
+  constructor(rootDirectory?: string) {
     this.history = [
       {
         role: "system",
@@ -61,10 +59,6 @@ export class Chat {
       },
     ];
     this.toolRegistry = getBaseToolRegistry(rootDirectory);
-    this.sessionId = `session-${Date.now()}-${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
-    this.userId = userId;
   }
 
   private async executeToolCall(
@@ -143,14 +137,5 @@ export class Chat {
         content: systemPrompt,
       },
     ];
-
-    // 生成新的 session ID
-    this.sessionId = `session-${Date.now()}-${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
-  }
-
-  getSessionId(): string {
-    return this.sessionId;
   }
 }

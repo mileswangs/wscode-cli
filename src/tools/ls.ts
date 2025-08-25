@@ -38,7 +38,7 @@ export class LsTool implements Tool<LsParams, ToolResult> {
   }
 
   validateToolParams(params: LsParams): string | null {
-    const validationError = validateSchema(this.schema, params);
+    const validationError: string | null = validateSchema(this.schema, params);
     if (validationError) {
       return validationError;
     }

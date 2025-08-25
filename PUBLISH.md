@@ -1,68 +1,68 @@
-# 发布说明
+# Publishing Notes
 
-## 已完成的配置
+## Completed Configuration
 
-### npm 发布设置
+### npm Publishing Setup
 
-- ✅ `package.json` 已配置正确的 `files` 字段
-- ✅ 添加了 `bin` 字段用于全局命令安装
-- ✅ 设置了 `prepublishOnly` 脚本自动构建
-- ✅ 创建了 `.npmignore` 排除源码和开发文件
-- ✅ 添加了 LICENSE 文件
+- ✅ `package.json` configured with correct `files` field
+- ✅ Added `bin` field for global command installation
+- ✅ Set up `prepublishOnly` script for automatic build
+- ✅ Created `.npmignore` to exclude source code and development files
+- ✅ Added LICENSE file
 
-### 构建配置
+### Build Configuration
 
-- ✅ esbuild 配置正确，将依赖标记为 external
-- ✅ 生成的 `dist/main.js` 包含正确的 shebang
-- ✅ 支持 ES modules
+- ✅ esbuild configured correctly with dependencies marked as external
+- ✅ Generated `dist/main.js` includes correct shebang
+- ✅ Supports ES modules
 
-### 测试验证
+### Testing Verification
 
-- ✅ 成功创建了 `gemini-cli-copy-1.0.0.tgz` 包
-- ✅ 包只包含必要的 dist 文件和文档
+- ✅ Successfully created `gemini-cli-copy-1.0.0.tgz` package
+- ✅ Package only contains necessary dist files and documentation
 
-## 发布步骤
+## Publishing Steps
 
-1. **本地测试**：
+1. **Local Testing**:
 
    ```bash
-   # 测试全局安装
+   # Test global installation
    npm install -g ./wscode-1.0.0.tgz
 
-   # 测试命令
+   # Test command
    wscode
 
-   # 卸载
+   # Uninstall
    npm uninstall -g wscode
    ```
 
-2. **发布到 npm**：
+2. **Publish to npm**:
 
    ```bash
-   # 登录 npm（如果还没有）
+   # Login to npm (if not already)
    npm login
 
-   # 发布
+   # Publish
    npm publish
    ```
 
-3. **用户安装**：
+3. **User Installation**:
 
    ```bash
-   # 全局安装
+   # Global installation
    npm install -g wscode
 
-   # 使用
+   # Usage
    wscode
    ```
 
-## 包结构
+## Package Structure
 
-发布的包只包含：
+The published package only includes:
 
-- `dist/main.js` - 编译后的可执行文件
-- `package.json` - 包元数据
-- `README.md` - 文档
-- `LICENSE` - 许可证
+- `dist/main.js` - Compiled executable file
+- `package.json` - Package metadata
+- `README.md` - Documentation
+- `LICENSE` - License
 
-不包含源码、测试文件、构建工具等开发文件。
+Does not include source code, test files, build tools, or other development files.
