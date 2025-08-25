@@ -33,7 +33,7 @@
    wscode
 
    # Uninstall
-   npm uninstall -g wscode
+   npm uninstall -g wscode-cli
    ```
 
 2. **Publish to npm**:
@@ -50,10 +50,10 @@
 
    ```bash
    # Global installation
-   npm install -g wscode
+   npm install -g wscode-cli
 
    # Usage
-   wscode
+   wscode-cli
    ```
 
 ## Package Structure

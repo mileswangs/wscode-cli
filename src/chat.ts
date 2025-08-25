@@ -83,7 +83,6 @@ export class Chat {
   }
 
   async sendPrompt(prompt: string, userId?: string) {
-    // 添加用户消息到历史
     this.history.push({
       role: "user",
       content: prompt,
@@ -99,7 +98,6 @@ export class Chat {
         throw new Error("No response from LLM");
       }
 
-      // 添加助手响应到历史
       this.history = this.history.concat(message);
 
       if (!message.tool_calls?.length) {
